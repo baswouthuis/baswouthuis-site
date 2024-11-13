@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Barplanning</title>
+    <title>Welkom - Barplanning</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -15,232 +15,51 @@
             align-items: center;
             height: 100vh;
             color: #333;
+            text-align: center;
         }
         .container {
             background-color: #ffffff;
             border-radius: 8px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            padding: 40px;
             width: 100%;
             max-width: 600px;
-            margin: 20px;
-            padding: 20px;
+            text-align: center;
         }
         h1 {
-            text-align: center;
-            color: #333;
+            color: #007aff;
+            font-size: 2em;
+            margin-bottom: 20px;
         }
-        label {
-            font-weight: 500;
+        p {
             color: #555;
-            margin: 10px 0 5px;
-            display: block;
-        }
-        input, button {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 10px;
-            border-radius: 8px;
-            border: 1px solid #ccc;
-            box-sizing: border-box;
+            font-size: 1.1em;
+            margin-bottom: 20px;
         }
         button {
             background-color: #007aff;
             color: white;
-            font-weight: bold;
+            padding: 12px 25px;
             border: none;
+            border-radius: 8px;
+            font-size: 1.2em;
             cursor: pointer;
             transition: background-color 0.3s;
         }
         button:hover {
             background-color: #005bb5;
         }
-        .multi-select, .conflict-section .multi-select {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            background-color: #f9f9f9;
-        }
-        .multi-select label, .conflict-section .multi-select label {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 14px;
-            cursor: pointer;
-            margin: 5px 10px 5px 0;
-        }
-        .month-checkboxes, .dates-checkboxes {
-            display: flex;
-            gap: 10px;
-            margin: 10px 0;
-        }
-        .availability ul {
-            list-style-type: none;
-            padding: 0;
-        }
-        .availability li {
-            background: #f9f9f9;
-            padding: 10px;
-            border-radius: 8px;
-            margin: 5px 0;
-        }
-        input[type="file"] {
-            width: calc(100% - 24px);
-            padding: 12px;
-        }
     </style>
 </head>
 <body>
+
     <div class="container">
-        <h1>Barplanning</h1>
-        
-        <form id="availabilityForm">
-            <label for="name">Naam:</label>
-            <input type="text" id="name" required>
-
-            <label>Selecteer de maand:</label>
-            <div id="months" class="month-checkboxes">
-                <label><input type="checkbox" value="nov" checked onchange="toggleMonth('nov')"> November</label>
-                <label><input type="checkbox" value="dec" checked onchange="toggleMonth('dec')"> December</label>
-            </div>
-
-            <div id="datesContainer" class="multi-select">
-                <label><input type="checkbox" value="1 nov"> 1 nov</label>
-                <label><input type="checkbox" value="8 nov"> 8 nov</label>
-                <label><input type="checkbox" value="15 nov"> 15 nov</label>
-                <label><input type="checkbox" value="22 nov"> 22 nov</label>
-                <label><input type="checkbox" value="29 nov"> 29 nov</label>
-                <label><input type="checkbox" value="6 dec"> 6 dec</label>
-                <label><input type="checkbox" value="13 dec"> 13 dec</label>
-                <label><input type="checkbox" value="20 dec"> 20 dec</label>
-                <label><input type="checkbox" value="27 dec"> 27 dec</label>
-            </div>
-
-            <label>
-                <input type="checkbox" id="anyone" checked onchange="toggleConflictSection()"> Kan met iedereen worden ingepland
-            </label>
-
-            <div id="conflictsContainer" class="conflict-section" style="display: none;">
-                <label>Niet samen inplannen met:</label>
-                <div class="multi-select">
-                    <label><input type="checkbox" value="Astrid"> Astrid</label>
-                    <label><input type="checkbox" value="Gerben"> Gerben</label>
-                    <label><input type="checkbox" value="Jesse Hein"> Jesse Hein</label>
-                    <label><input type="checkbox" value="Joppe"> Joppe</label>
-                    <label><input type="checkbox" value="Miloeska"> Miloeska</label>
-                    <label><input type="checkbox" value="Niekse"> Niekse</label>
-                    <label><input type="checkbox" value="Noah"> Noah</label>
-                    <label><input type="checkbox" value="Rolinda"> Rolinda</label>
-                    <label><input type="checkbox" value="Thom"> Thom</label>
-                    <label><input type="checkbox" value="Wendy"> Wendy</label>
-                </div>
-            </div>
-
-            <button type="button" onclick="addAvailability()">Voeg beschikbaarheid toe</button>
-        </form>
-
-        <div class="availability">
-            <h3>Overzicht van Beschikbaarheid en Voorkeuren</h3>
-            <ul id="availabilityList"></ul>
-        </div>
-
-        <button onclick="downloadData('csv')">Download als CSV</button>
-        <button onclick="downloadData('txt')">Download als TXT</button>
-        <input type="file" id="fileInput" onchange="uploadData()" accept=".csv, .txt">
+        <h1>Welkom bij de Barplanning!</h1>
+        <p>Beheer je beschikbaarheid en conflicten voor barplanning eenvoudig.</p>
+        <a href="barplanning.html">
+            <button>Ga naar Barplanning</button>
+        </a>
     </div>
 
-    <script>
-        const availability = {};
-        const conflicts = {};
-        const dates = {
-            "nov": ["1 nov", "8 nov", "15 nov", "22 nov", "29 nov"],
-            "dec": ["6 dec", "13 dec", "20 dec", "27 dec"]
-        };
-
-        function toggleMonth(month) {
-            const monthDates = dates[month];
-            document.querySelectorAll('#datesContainer label').forEach(label => {
-                if (monthDates.includes(label.textContent.trim())) {
-                    label.style.display = label.style.display === 'none' ? 'inline-flex' : 'none';
-                }
-            });
-        }
-
-        function toggleConflictSection() {
-            document.getElementById("conflictsContainer").style.display = document.getElementById("anyone").checked ? "none" : "block";
-        }
-
-        function getSelectedCheckboxValues(containerId) {
-            const checkboxes = document.querySelectorAll(`#${containerId} input[type="checkbox"]:checked`);
-            return Array.from(checkboxes).map(cb => cb.value);
-        }
-
-        function addAvailability() {
-            const name = document.getElementById("name").value;
-            const selectedDates = getSelectedCheckboxValues("datesContainer");
-            const conflictNames = getSelectedCheckboxValues("conflictsContainer");
-
-            if (name && selectedDates.length > 0) {
-                availability[name] = selectedDates;
-                conflicts[name] = conflictNames;
-
-                updateAvailabilityList();
-                document.getElementById("availabilityForm").reset();
-                document.querySelectorAll('.multi-select input[type="checkbox"]').forEach(cb => cb.checked = false);
-            } else {
-                alert("Voer een naam in en selecteer ten minste één datum.");
-            }
-        }
-
-        function updateAvailabilityList() {
-            const availabilityList = document.getElementById("availabilityList");
-            availabilityList.innerHTML = "";
-
-            for (const [name, dates] of Object.entries(availability)) {
-                const conflictList = conflicts[name].length ? conflicts[name].join(", ") : "Geen";
-                const listItem = document.createElement("li");
-                listItem.textContent = `${name}: Beschikbaar op ${dates.join(", ")} | Niet samen met: ${conflictList}`;
-                availabilityList.appendChild(listItem);
-            }
-        }
-
-        function downloadData(format) {
-            let content = "Naam,Beschikbaarheid,Niet Samen Met\n";
-            for (const [name, dates] of Object.entries(availability)) {
-                const conflictList = conflicts[name].join(";");
-                content += `${name},${dates.join(";")},${conflictList}\n`;
-            }
-
-            const blob = new Blob([content], { type: format === "csv" ? "text/csv" : "text/plain" });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = `barplanning.${format}`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-        }
-
-        function uploadData() {
-            const fileInput = document.getElementById("fileInput");
-            const file = fileInput.files[0];
-            const reader = new FileReader();
-
-            reader.onload = function(event) {
-                const lines = event.target.result.split("\n").slice(1);
-                for (const line of lines) {
-                    if (line.trim()) {
-                        const [name, dates, conflictsList] = line.split(",");
-                        availability[name] = dates ? dates.split(";") : [];
-                        conflicts[name] = conflictsList ? conflictsList.split(";") : [];
-                    }
-                }
-                updateAvailabilityList();
-            };
-            reader.readAsText(file);
-        }
-    </script>
 </body>
 </html>
