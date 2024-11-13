@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barplanning</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .container { max-width: 700px; margin: 0 auto; padding: 20px; }
+        h1 { text-align: center; }
+        label { display: block; margin: 10px 0 5px; }
+        input, select, button { width: 100%; padding: 10px; margin-bottom: 10px; }
+        .multi-select { height: 150px; overflow-y: scroll; padding: 5px; border: 1px solid #ccc; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 8px; text-align: center; border: 1px solid #ccc; }
+        .availability, .preferences { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Barplanning</h1>
+        
+        <form id="availabilityForm">
+            <label for="name">Naam:</label>
+            <input type="text" id="name" required>
+
+            <label>Beschikbare data (selecteer meerdere):</label>
+            <div id="dates" class="multi-select">
+                <label><input type="checkbox" value="1 nov"> 1 nov</label>
+                <label><input type="checkbox" value="8 nov"> 8 nov</label>
+                <label><input type="checkbox" value="15 nov"> 15 nov</label>
+                <label><input type="checkbox" value="22 nov"> 22 nov</label>
+                <label><input type="checkbox" value="29 nov"> 29 nov</label>
+                <label><input type="checkbox" value="6 dec"> 6 dec</label>
+                <label><input type="checkbox" value="13 dec"> 13 dec</label>
+                <label><input type="checkbox" value="20 dec"> 20 dec</label>
+                <label><input type="checkbox" value="27 dec"> 27 dec</label>
+            </div>
+
+            <label>Niet samen inplannen met (selecteer meerdere):</label>
+            <div id="conflicts" class="multi-select">
+                <label><input type="checkbox" value="Astrid"> Astrid</label>
+                <label><input type="checkbox" value="Gerben"> Gerben</label>
+                <label><input type="checkbox" value="Jesse Hein"> Jesse Hein</label>
+                <label><input type="checkbox" value="Joppe"> Joppe</label>
+                <label><input type="checkbox" value="Miloeska"> Miloeska</label>
+                <label><input type="checkbox" value="Niekse"> Niekse</label>
+                <label><input type="checkbox" value="Noah"> Noah</label>
+                <label><input type="checkbox" value="Rolinda"> Rolinda</label>
+                <label><input type="checkbox" value="Thom"> Thom</label>
+                <label><input type="checkbox" value="Wendy"> Wendy</label>
+            </div>
+
+            <button type="button" onclick="addAvailability()">Voeg beschikbaarheid toe</button>
+        </form>
+
+        <div class="availability">
+            <h3>Overzicht van Beschikbaarheid en Voorkeuren</h3>
+            <ul id="availabilityList"></ul>
+        </div>
+
+        <table id="planningTable">
+            <thead>
+                <tr>
+                    <th>Datum</th>
+                    <th>Persoon 1</th>
+                    <th>Persoon 2</th>
+                </tr>
+            </thead>
+            <tbody id="planningBody">
+                <!-- Planning rows will be added here -->
+            </tbody>
+        </table>
+
+        <button onclick="downloadData('csv')">Download als CSV</button>
+        <button onclick="downloadData('txt')">Download als TXT</button>
+        <input type="file" id="fileInput" onchange="uploadData()" accept=".csv, .txt">
+    </div>
+
+    <script>
+        const availability = {};
+        const conflicts = {};
+        const dates = ["1 nov", "8 nov", "15 nov", "22 nov", "29 nov", "6 dec", "13 dec", "20 dec", "27 dec"];
+
+        function getSelectedCheckboxValues(containerId) {
+            const checkboxes = document.querySelectorAll(`#${containerId} input[type="checkbox"]:checked`);
+            return Array.from(checkboxes).map(cb => cb.value);
+        }
+
+        function addAvailability() {
+            const name = document.getElementById("name").value;
+            const selectedDates = getSelectedCheckboxValues("dates");
+            const conflictNames = getSelectedCheckboxValues("conflicts");
+
+            if (name && selectedDates.length > 0) {
+                availability[name] = selectedDates;
+                conflicts[name] = conflictNames;
+
+                updateAvailabilityList();
+                document.getElementById("availabilityForm").reset();
+                document.querySelectorAll('.multi-select input[type="checkbox"]').forEach(cb => cb.checked = false);
+                generatePlanning();
+            } else {
+                alert("Voer een naam in en selecteer ten minste één datum.");
+            }
+        }
+
+        function updateAvailabilityList() {
+            const availabilityList = document.getElementById("availabilityList");
+            availabilityList.innerHTML = ""; // Reset list
+
+            for (const [name, dates] of Object.entries(availability)) {
+                const conflictList = conflicts[name].length ? conflicts[name].join(", ") : "Geen";
+                const listItem = document.createElement("li");
+                listItem.textContent = `${name}: Beschikbaar op ${dates.join(", ")} | Niet samen met: ${conflictList}`;
+                availabilityList.appendChild(listItem);
+            }
+        }
+
+        function generatePlanning() {
+            const planningBody = document.getElementById("planningBody");
+            planningBody.innerHTML = ""; // Reset planning table
+
+            const dateCount = {}; // Track people per date
+            dates.forEach(date => dateCount[date] = []);
+
+            for (const [name, availableDates] of Object.entries(availability)) {
+                let assignedDates = 0;
+                for (const date of availableDates) {
+                    if (dateCount[date].length < 2 && assignedDates < 2) {
+                        const hasConflict = dateCount[date].some(person => conflicts[name].includes(person));
+                        if (!hasConflict) {
+                            dateCount[date].push(name);
+                            assignedDates++;
+                        }
+                    }
+                }
+            }
+
+            dates.forEach(date => {
+                const row = document.createElement("tr");
+                row.innerHTML = `<td>${date}</td><td>${dateCount[date][0] || ""}</td><td>${dateCount[date][1] || ""}</td>`;
+                planningBody.appendChild(row);
+            });
+        }
+
+        function downloadData(format) {
+            let content = "Naam,Beschikbaarheid,Niet Samen Met\n";
+            for (const [name, dates] of Object.entries(availability)) {
+                const conflictList = conflicts[name].join(";");
+                content += `${name},${dates.join(";")},${conflictList}\n`;
+            }
+            
+            const blob = new Blob([content], { type: format === "csv" ? "text/csv" : "text/plain" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `barplanning.${format}`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        function uploadData() {
+            const fileInput = document.getElementById("fileInput");
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(event) {
+                const lines = event.target.result.split("\n").slice(1);
+                for (const line of lines) {
+                    if (line.trim()) {
+                        const [name, dates, conflictsList] = line.split(",");
+                        availability[name] = dates ? dates.split(";") : [];
+                        conflicts[name] = conflictsList ? conflictsList.split(";") : [];
+                    }
+                }
+                updateAvailabilityList();
+                generatePlanning();
+            };
+            reader.readAsText(file);
+        }
+    </script>
+</body>
+</html>
