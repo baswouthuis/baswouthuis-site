@@ -61,8 +61,7 @@
             border: 1px solid #ddd;
             border-radius: 8px;
             display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
+            flex-direction: column;
         }
         .multi-select label {
             display: flex;
@@ -71,21 +70,6 @@
             margin: 5px 0;
             font-size: 14px;
             cursor: pointer;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        th, td {
-            padding: 10px;
-            text-align: center;
-            border: 1px solid #ccc;
-            color: #333;
-        }
-        th {
-            background-color: #007aff;
-            color: #fff;
         }
         .availability, .preferences {
             margin-top: 20px;
@@ -104,6 +88,14 @@
             width: calc(100% - 24px);
             padding: 12px;
         }
+        .month-checkboxes, .dates-checkboxes {
+            display: flex;
+            flex-direction: column;
+            margin: 10px 0;
+        }
+        .conflict-section {
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -114,8 +106,13 @@
             <label for="name">Naam:</label>
             <input type="text" id="name" required>
 
-            <label>Beschikbare data (selecteer meerdere):</label>
-            <div id="dates" class="multi-select">
+            <label>Selecteer de maand:</label>
+            <div id="months" class="month-checkboxes">
+                <label><input type="checkbox" value="nov" checked onchange="toggleMonth('nov')"> November</label>
+                <label><input type="checkbox" value="dec" checked onchange="toggleMonth('dec')"> December</label>
+            </div>
+
+            <div id="datesContainer" class="multi-select">
                 <label><input type="checkbox" value="1 nov"> 1 nov</label>
                 <label><input type="checkbox" value="8 nov"> 8 nov</label>
                 <label><input type="checkbox" value="15 nov"> 15 nov</label>
@@ -127,18 +124,24 @@
                 <label><input type="checkbox" value="27 dec"> 27 dec</label>
             </div>
 
-            <label>Niet samen inplannen met (selecteer meerdere):</label>
-            <div id="conflicts" class="multi-select">
-                <label><input type="checkbox" value="Astrid"> Astrid</label>
-                <label><input type="checkbox" value="Gerben"> Gerben</label>
-                <label><input type="checkbox" value="Jesse Hein"> Jesse Hein</label>
-                <label><input type="checkbox" value="Joppe"> Joppe</label>
-                <label><input type="checkbox" value="Miloeska"> Miloeska</label>
-                <label><input type="checkbox" value="Niekse"> Niekse</label>
-                <label><input type="checkbox" value="Noah"> Noah</label>
-                <label><input type="checkbox" value="Rolinda"> Rolinda</label>
-                <label><input type="checkbox" value="Thom"> Thom</label>
-                <label><input type="checkbox" value="Wendy"> Wendy</label>
+            <label>
+                <input type="checkbox" id="anyone" checked onchange="toggleConflictSection()"> Kan met iedereen worden ingepland
+            </label>
+
+            <div id="conflictsContainer" class="conflict-section" style="display: none;">
+                <label>Niet samen inplannen met:</label>
+                <div class="multi-select">
+                    <label><input type="checkbox" value="Astrid"> Astrid</label>
+                    <label><input type="checkbox" value="Gerben"> Gerben</label>
+                    <label><input type="checkbox" value="Jesse Hein"> Jesse Hein</label>
+                    <label><input type="checkbox" value="Joppe"> Joppe</label>
+                    <label><input type="checkbox" value="Miloeska"> Miloeska</label>
+                    <label><input type="checkbox" value="Niekse"> Niekse</label>
+                    <label><input type="checkbox" value="Noah"> Noah</label>
+                    <label><input type="checkbox" value="Rolinda"> Rolinda</label>
+                    <label><input type="checkbox" value="Thom"> Thom</label>
+                    <label><input type="checkbox" value="Wendy"> Wendy</label>
+                </div>
             </div>
 
             <button type="button" onclick="addAvailability()">Voeg beschikbaarheid toe</button>
@@ -149,19 +152,6 @@
             <ul id="availabilityList"></ul>
         </div>
 
-        <table id="planningTable">
-            <thead>
-                <tr>
-                    <th>Datum</th>
-                    <th>Persoon 1</th>
-                    <th>Persoon 2</th>
-                </tr>
-            </thead>
-            <tbody id="planningBody">
-                <!-- Planning rows will be added here -->
-            </tbody>
-        </table>
-
         <button onclick="downloadData('csv')">Download als CSV</button>
         <button onclick="downloadData('txt')">Download als TXT</button>
         <input type="file" id="fileInput" onchange="uploadData()" accept=".csv, .txt">
@@ -170,7 +160,23 @@
     <script>
         const availability = {};
         const conflicts = {};
-        const dates = ["1 nov", "8 nov", "15 nov", "22 nov", "29 nov", "6 dec", "13 dec", "20 dec", "27 dec"];
+        const dates = {
+            "nov": ["1 nov", "8 nov", "15 nov", "22 nov", "29 nov"],
+            "dec": ["6 dec", "13 dec", "20 dec", "27 dec"]
+        };
+
+        function toggleMonth(month) {
+            const monthDates = dates[month];
+            document.querySelectorAll('#datesContainer label').forEach(label => {
+                if (monthDates.includes(label.textContent.trim())) {
+                    label.style.display = label.style.display === 'none' ? 'block' : 'none';
+                }
+            });
+        }
+
+        function toggleConflictSection() {
+            document.getElementById("conflictsContainer").style.display = document.getElementById("anyone").checked ? "none" : "block";
+        }
 
         function getSelectedCheckboxValues(containerId) {
             const checkboxes = document.querySelectorAll(`#${containerId} input[type="checkbox"]:checked`);
@@ -179,8 +185,8 @@
 
         function addAvailability() {
             const name = document.getElementById("name").value;
-            const selectedDates = getSelectedCheckboxValues("dates");
-            const conflictNames = getSelectedCheckboxValues("conflicts");
+            const selectedDates = getSelectedCheckboxValues("datesContainer");
+            const conflictNames = getSelectedCheckboxValues("conflictsContainer");
 
             if (name && selectedDates.length > 0) {
                 availability[name] = selectedDates;
@@ -189,7 +195,6 @@
                 updateAvailabilityList();
                 document.getElementById("availabilityForm").reset();
                 document.querySelectorAll('.multi-select input[type="checkbox"]').forEach(cb => cb.checked = false);
-                generatePlanning();
             } else {
                 alert("Voer een naam in en selecteer ten minste één datum.");
             }
@@ -197,7 +202,7 @@
 
         function updateAvailabilityList() {
             const availabilityList = document.getElementById("availabilityList");
-            availabilityList.innerHTML = ""; // Reset list
+            availabilityList.innerHTML = "";
 
             for (const [name, dates] of Object.entries(availability)) {
                 const conflictList = conflicts[name].length ? conflicts[name].join(", ") : "Geen";
@@ -207,40 +212,13 @@
             }
         }
 
-        function generatePlanning() {
-            const planningBody = document.getElementById("planningBody");
-            planningBody.innerHTML = ""; // Reset planning table
-
-            const dateCount = {}; // Track people per date
-            dates.forEach(date => dateCount[date] = []);
-
-            for (const [name, availableDates] of Object.entries(availability)) {
-                let assignedDates = 0;
-                for (const date of availableDates) {
-                    if (dateCount[date].length < 2 && assignedDates < 2) {
-                        const hasConflict = dateCount[date].some(person => conflicts[name].includes(person));
-                        if (!hasConflict) {
-                            dateCount[date].push(name);
-                            assignedDates++;
-                        }
-                    }
-                }
-            }
-
-            dates.forEach(date => {
-                const row = document.createElement("tr");
-                row.innerHTML = `<td>${date}</td><td>${dateCount[date][0] || ""}</td><td>${dateCount[date][1] || ""}</td>`;
-                planningBody.appendChild(row);
-            });
-        }
-
         function downloadData(format) {
             let content = "Naam,Beschikbaarheid,Niet Samen Met\n";
             for (const [name, dates] of Object.entries(availability)) {
                 const conflictList = conflicts[name].join(";");
                 content += `${name},${dates.join(";")},${conflictList}\n`;
             }
-            
+
             const blob = new Blob([content], { type: format === "csv" ? "text/csv" : "text/plain" });
             const url = URL.createObjectURL(blob);
             const a = document.createElement("a");
@@ -266,7 +244,6 @@
                     }
                 }
                 updateAvailabilityList();
-                generatePlanning();
             };
             reader.readAsText(file);
         }
